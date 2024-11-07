@@ -1,0 +1,22 @@
+include LICENSE
+include README.md
+include requirements.txt
+include pyproject.toml
+
+# Include test files
+recursive-include tests *.py
+
+# Include documentation
+recursive-include docs *
+
+# Exclude development files
+global-exclude *.pyc
+global-exclude *.pyo
+global-exclude *.pyd
+global-exclude __pycache__
+global-exclude *.so
+global-exclude *.dylib
+global-exclude .git*
+global-exclude .pytest_cache
+global-exclude .coverage
+global-exclude htmlcov
