@@ -24,6 +24,11 @@ Transform code repositories into markdown-formatted strings ready for LLM prompt
 - Direct copy to clipboard
 
 ## Installation
+Install from pip
+```bash
+pip install codemd
+```
+or install from source
 ```bash
 git clone https://github.com/dotpyu/codemd.git
 cd codemd
