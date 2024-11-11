@@ -38,6 +38,15 @@ Examples:
 
   # Non-recursive scan with custom output
   codemd /path/to/code --no-recursive -o custom.md
+
+  # Disable structure output
+  codemd /path/to/code --no-structure
+
+  # Use specific gitignore files
+  codemd /path/to/code --gitignore .gitignore .custom-ignore
+
+  # Disable gitignore processing
+  codemd /path/to/code --ignore-gitignore
 """
 
 
@@ -50,54 +59,36 @@ def parse_arguments() -> argparse.Namespace:
         epilog=EPILOG
     )
 
+    parser.add_argument('directory', type=str, help='Directory to scan')
+    parser.add_argument('-e', '--extensions', type=str, default='py,java,js,cpp,c,h,hpp',
+                        help='Comma-separated list of file extensions to include (without dots)')
+    parser.add_argument('--exclude-patterns', type=str, default='',
+                        help='Comma-separated list of patterns to exclude (e.g., test_,debug_)')
+    parser.add_argument('--exclude-extensions', type=str, default='',
+                        help='Comma-separated list of file patterns to exclude (e.g., test.py,spec.js)')
+    parser.add_argument('-o', '--output', type=str, default=None,
+                        help='Output file path (if not specified, prints to stdout)')
+    parser.add_argument('--no-recursive', action='store_true',
+                        help='Disable recursive directory scanning')
+    parser.add_argument('-v', '--verbose', action='store_true',
+                        help='Enable verbose output')
+    parser.add_argument('--no-structure', action='store_true',
+                        help='Disable repository structure output')
+
     parser.add_argument(
-        'directory',
+        '--gitignore',
         type=str,
-        help='Directory to scan'
+        nargs='+',
+        help='Specify one or more .gitignore files to use'
     )
 
     parser.add_argument(
-        '-e', '--extensions',
-        type=str,
-        default='py,java,js,cpp,c,h,hpp',
-        help='Comma-separated list of file extensions to include (without dots)'
-    )
-
-    parser.add_argument(
-        '--exclude-patterns',
-        type=str,
-        default='',
-        help='Comma-separated list of patterns to exclude (e.g., test_,debug_)'
-    )
-
-    parser.add_argument(
-        '--exclude-extensions',
-        type=str,
-        default='',
-        help='Comma-separated list of file patterns to exclude (e.g., test.py,spec.js)'
-    )
-
-    parser.add_argument(
-        '-o', '--output',
-        type=str,
-        default=None,
-        help='Output file path (if not specified, prints to stdout)'
-    )
-
-    parser.add_argument(
-        '--no-recursive',
+        '--ignore-gitignore',
         action='store_true',
-        help='Disable recursive directory scanning'
-    )
-
-    parser.add_argument(
-        '-v', '--verbose',
-        action='store_true',
-        help='Enable verbose output'
+        help='Disable .gitignore processing'
     )
 
     return parser.parse_args()
-
 
 def str_to_set(s: str) -> Set[str]:
     """Convert comma-separated string to set of strings."""
@@ -212,12 +203,11 @@ def format_token_info(token_count: int, model_name: str) -> str:
 
 def main() -> int:
     print(BANNER)
-    print("Version 0.0.1")
+    print("Version 0.0.2")
     print("Transform your code into LLM-ready prompts\n")
 
     try:
         args = parse_arguments()
-
         directory = Path(args.directory)
         output_file = Path(args.output) if args.output else None
 
@@ -232,26 +222,16 @@ def main() -> int:
         exclude_patterns = str_to_set(args.exclude_patterns)
         exclude_extensions = str_to_set(args.exclude_extensions)
 
-        if args.verbose:
-            print("Configuration:")
-            print(f"  Directory: {directory}")
-            print(f"  Extensions: {', '.join(sorted(extensions))}")
-            if exclude_patterns:
-                print(f"  Exclude patterns: {', '.join(sorted(exclude_patterns))}")
-            if exclude_extensions:
-                print(f"  Exclude extensions: {', '.join(sorted(exclude_extensions))}")
-            if output_file:
-                print(f"  Output: {output_file}")
-            else:
-                print("  Output: stdout")
-            print(f"  Recursive: {not args.no_recursive}")
-            print("\nProcessing files...")
-
         scanner = CodeScanner(
             extensions=extensions,
             exclude_patterns=exclude_patterns,
-            exclude_extensions=exclude_extensions
+            exclude_extensions=exclude_extensions,
+            gitignore_files=args.gitignore,
+            ignore_gitignore=args.ignore_gitignore
         )
+
+        scanner.no_structure = args.no_structure
+
 
         try:
             content = scanner.scan_directory(

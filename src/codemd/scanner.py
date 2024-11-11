@@ -1,30 +1,63 @@
 import argparse
 import sys
 from pathlib import Path
-from typing import Set, Optional
+import pathspec
+from typing import Set, Optional, List
 
 
 class CodeScanner:
     def __init__(self,
                  extensions: Optional[Set[str]] = None,
                  exclude_patterns: Optional[Set[str]] = None,
-                 exclude_extensions: Optional[Set[str]] = None):
-        """
-        Initialize the CodeScanner with optional file extensions to filter.
-
-        Args:
-            extensions: Set of file extensions to include (without dots), e.g. {'py', 'java'}
-            exclude_patterns: Set of filename patterns to exclude, e.g. {'test_', 'debug_'}
-            exclude_extensions: Set of file extensions to exclude (without dots), e.g. {'test.py', 'spec.js'}
-        """
+                 exclude_extensions: Optional[Set[str]] = None,
+                 gitignore_files: Optional[List[str]] = None,
+                 ignore_gitignore: bool = False):
+        """Initialize the CodeScanner with optional file extensions to filter."""
         self.extensions = extensions or {'py', 'java', 'js', 'cpp', 'c', 'h', 'hpp'}
         self.exclude_patterns = exclude_patterns or set()
         self.exclude_extensions = exclude_extensions or set()
+        self.no_structure = False
+        self.gitspec = None
+        self.base_dir = None
+
+        if not ignore_gitignore:
+            self.load_gitignore(gitignore_files)
+
+    def load_gitignore(self, gitignore_files: Optional[List[str]] = None):
+        """Load gitignore patterns from specified files or default .gitignore"""
+        patterns = []
+
+        if gitignore_files:
+            for gitignore_path in gitignore_files:
+                try:
+                    with open(gitignore_path, 'r') as f:
+                        patterns.extend(f.readlines())
+                except Exception as e:
+                    print(f"Warning: Could not read gitignore file {gitignore_path}: {str(e)}",
+                          file=sys.stderr)
+
+        elif Path('.gitignore').exists():
+            try:
+                with open('.gitignore', 'r') as f:
+                    patterns.extend(f.readlines())
+            except Exception as e:
+                print(f"Warning: Could not read default .gitignore: {str(e)}",
+                      file=sys.stderr)
+
+        if patterns:
+            self.gitspec = pathspec.PathSpec.from_lines('gitwildmatch', patterns)
 
     def should_include_file(self, file_path: Path) -> bool:
-        """
-        Check if a file should be included based on extensions and exclusion patterns.
-        """
+        """Check if a file should be included based on extensions and exclusion patterns."""
+        if self.gitspec is not None and self.base_dir is not None:
+            try:
+                rel_path = str(file_path.relative_to(self.base_dir))
+                if self.gitspec.match_file(rel_path):
+                    return False
+            except ValueError:
+                if self.gitspec.match_file(str(file_path)):
+                    return False
+
         if file_path.suffix.lstrip('.') not in self.extensions:
             return False
 
@@ -38,22 +71,60 @@ class CodeScanner:
 
         return True
 
+    def generate_structure(self, path: Path, depth: int = 0) -> str:
+        """
+        Generate a tree-like structure of the codebase, respecting gitignore patterns.
+        """
+        structure = []
+
+        try:
+            items = sorted(path.iterdir())
+            for item in items:
+                if item.name.startswith('.'):
+                    continue
+
+                if self.gitspec is not None:
+                    try:
+                        rel_path = str(item.relative_to(self.base_dir))
+                        if self.gitspec.match_file(rel_path):
+                            continue
+                    except ValueError:
+                        if self.gitspec.match_file(str(item)):
+                            continue
+
+                indent = "  " * depth
+                safe_name = item.name.replace('*', '\\*').replace('_', '\\_')
+
+                if item.is_dir():
+                    substructure = self.generate_structure(item, depth + 1)
+                    if substructure:
+                        structure.append(f"{indent}* **{safe_name}/**")
+                        structure.extend(substructure.split('\n'))
+                elif self.should_include_file(item):
+                    structure.append(f"{indent}* {safe_name}")
+
+        except PermissionError:
+            pass
+
+        return '\n'.join(structure)
+
     def scan_directory(self, directory: str, recursive: bool = True) -> str:
-        """
-        Scan a directory for code files and merge them into a markdown-formatted string.
-
-        Args:
-            directory: Path to the directory to scan
-            recursive: Whether to scan subdirectories recursively
-
-        Returns:
-            A markdown-formatted string containing all code files
-        """
+        """Scan a directory for code files and merge them into a markdown-formatted string."""
         directory_path = Path(directory)
         if not directory_path.exists():
             raise ValueError(f"Directory {directory} does not exist")
 
+        self.base_dir = directory_path.resolve()
+
         merged_content = []
+
+        if not self.no_structure:
+            structure = ["# Repository Structure"]
+            dir_structure = self.generate_structure(directory_path)
+            if dir_structure:
+                structure.append(dir_structure)
+            structure.append("")
+            merged_content.extend(structure)
 
         if recursive:
             files = list(directory_path.rglob("*"))
@@ -83,6 +154,8 @@ class CodeScanner:
                 print(f"Error processing {file_path}: {str(e)}", file=sys.stderr)
 
         return "\n".join(merged_content)
+
+
 
 
 def parse_arguments():
