@@ -106,7 +106,6 @@ Contributions are welcome! Feel free to open issues or submit pull requests.
 Distributed under the Apache 2.0 License. See `LICENSE` for more information.
 
 ---
-
 <div align="center">
 Made with ❤️ by Peilin
 </div>
