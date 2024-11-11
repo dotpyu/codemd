@@ -1,70 +1,111 @@
+<div align="center">
+
 ```
    ___             _                    ___ 
   / __\  ___    __| |  ___    /\/\     /   \
  / /    / _ \  / _` | / _ \  /    \   / /\ /
 / /___ | (_) || (_| ||  __/ / /\/\ \ / /_// 
 \____/  \___/  \__,_| \___| \/    \//___,' 
-```
-# codemd
 
-Transform code repositories into markdown-formatted strings ready for LLM prompting. Easily convert your entire codebase into a format that's optimal for code-related prompts with LLMs like GPT-4, Claude, etc.
+Ver. 0.0.2
+````
+
+# CodeMD
+
+🚀 Transform code repositories into markdown-formatted strings ready for LLM prompting
 
 [![Tests](https://github.com/dotpyu/codemd/actions/workflows/tests.yml/badge.svg)](https://github.com/dotpyu/codemd/actions/workflows/tests.yml)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
+</div>
 
-## Features
-- Recursively scans directories for code files
-- Configurable file extensions
-- File and pattern exclusion support
-- Markdown-formatted output
-- Preserves directory structure in headers
-- Simple command-line interface
-- Token count estimation (tiktoken package required)
-- Direct copy to clipboard
+## 📝 Overview
 
-## Installation
-Install from pip
+CodeMD helps you convert your entire codebase into a format that's optimal for code-related prompts with Large Language Models (LLMs) like GPT-4, Claude, and others. It automatically processes your code files and outputs them in a clean, markdown-formatted structure that's perfect for LLM interactions.
+
+## ✨ Features
+
+- 🔍 **Smart Directory Scanning**: Recursively scans directories for code files
+- 🎯 **Flexible Configuration**: 
+  - Configurable file extensions
+  - File and pattern exclusion support
+  - Custom .gitignore support
+- 📊 **Intelligent Output**:
+  - Markdown-formatted code blocks
+  - Preserved directory structure
+  - Repository structure visualization
+  - Token count estimation (with tiktoken)
+- 📋 **Convenience**:
+  - Simple command-line interface
+  - Direct copy-to-clipboard support
+  - Multiple output options
+
+### 🎉 Recent Updates
+
+- ⭐ **NEW**: Repository structure visualization (disable with `--no-structure`)
+- ⭐ **NEW**: Automatic .gitignore support
+  - Uses project's .gitignore by default
+  - Custom .gitignore files via `--gitignore`
+  - Disable with `--ignore-gitignore`
+
+## 🚀 Installation
 ```bash
 pip install codemd
 ```
-or install from source
+
+or install from source!
+
 ```bash
 git clone https://github.com/dotpyu/codemd.git
 cd codemd
 pip install -e .
 ```
 
-## Usage
-Basic usage:
+## 📖 Usage
+
+### Command Line Interface
+
+**Basic Usage:**
 ```bash
 codemd /path/to/your/code
 ```
 
-With custom extensions and output file:
+**Custom Extensions and Output:**
 ```bash
 codemd /path/to/your/code -e py,java,sql -o output.md
 ```
 
-Exclude specific patterns or files:
+**Pattern Exclusion:**
 ```bash
 codemd /path/to/your/code \
     --exclude-patterns "test_,debug_" \
     --exclude-extensions "test.py,spec.js"
 ```
 
-As a Python package:
-```python
-from codemd import CodeScanner
+**.gitignore Configuration:**
+```bash
+# Use custom gitignore files
+codemd /path/to/your/code --gitignore .gitignore .custom-ignore
 
-scanner = CodeScanner(
-    extensions={'py', 'java'},
-    exclude_patterns={'test_'},
-    exclude_extensions={'test.py'}
-)
-markdown_string = scanner.scan_directory('./my_project')
+# Disable gitignore processing
+codemd /path/to/your/code --ignore-gitignore
 ```
 
+## 🤝 Contributing
 
-## License
-Distributed under the Apache 2 License. See `LICENSE` for more information.
+Contributions are welcome! Feel free to open issues or submit pull requests.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+Distributed under the Apache 2.0 License. See `LICENSE` for more information.
+
+---
+<div align="center">
+Made with ❤️ by Peilin
+</div>
