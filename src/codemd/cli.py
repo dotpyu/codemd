@@ -215,7 +215,7 @@ def format_token_info(token_count: int, model_name: str) -> str:
 
 def main() -> int:
     print(BANNER)
-    print("Version 0.0.2b")
+    print("Version 0.0.2b1")
     print("Transform your code into LLM-ready prompts and automatically copy them to your clipboard!\n")
 
     try:
