@@ -7,7 +7,7 @@
 / /___ | (_) || (_| ||  __/ / /\/\ \ / /_// 
 \____/  \___/  \__,_| \___| \/    \//___,' 
 
-Ver. 0.0.3b
+Ver. 0.0.3
 ```
 
 # CodeMD
@@ -21,7 +21,22 @@ Ver. 0.0.3b
 
 ## 📝 Overview
 
-Tired of copying code files one by one? CodeMD instantly collects all relevant code in Markdown format and copies it to your clipboard - ready for ChatGPT, Claude, or any LLM? CodeMD helps you convert your code files or entire codebase into a format that's optimal for code-related prompts with Large Language Models (LLMs) like GPT-4, Claude, and others. It automatically processes your code files and outputs them in a clean, markdown-formatted structure that's perfect for LLM interactions.
+Tired of copying code files one by one? CodeMD instantly collects all relevant code in Markdown format and copies it to your clipboard - ready for ChatGPT, Claude, or any LLM.
+
+Whether you need to process a single script or an entire codebase, CodeMD automatically:
+- Formats your code into LLM-friendly markdown
+- Preserves file structure and syntax highlighting
+- Estimates token usage for GPT models
+- Copies everything to your clipboard
+
+Perfect for developers who want to:
+- Get AI assistance with code review
+- Ask LLMs about specific implementations
+- Document and explain codebases
+- Debug complex issues with AI help
+
+No more manual copying and pasting - just run CodeMD and start chatting with your favorite LLM!
+
 
 ## ✨ Features
 
@@ -42,7 +57,7 @@ Tired of copying code files one by one? CodeMD instantly collects all relevant c
   - Direct copy-to-clipboard support
   - Multiple output options
 
-### 🎉 Recent Updates (0.0.3b)
+### 🎉 Recent Updates (0.0.3)
 
 - ⭐ **NEW**: Single file processing support
 - ⭐ **NEW**: Configurable output display (use `--print` to show output)
