@@ -1,4 +1,5 @@
 import os
+
 from setuptools import setup, find_packages
 
 with open(os.path.join(os.path.dirname(__file__), "README.md"), encoding="utf-8") as f:
@@ -7,10 +8,9 @@ with open(os.path.join(os.path.dirname(__file__), "README.md"), encoding="utf-8"
 with open("requirements.txt", encoding="utf-8") as f:
     requirements = [line.strip() for line in f if line.strip() and not line.startswith("#")]
 
-
 setup(
     name="codemd",
-    version="0.0.2",
+    version="0.0.2b",
     author="Peilin Yu",
     author_email="peilin_yu@brown.edu",
     description="Transform code repositories into markdown-formatted strings ready for LLM prompting",

@@ -1,8 +1,53 @@
 import argparse
 import sys
 from pathlib import Path
-import pathspec
 from typing import Set, Optional, List
+
+import pathspec
+
+DEFAULT_CODE_EXTENSIONS = {
+    # Systems Programming
+    'c', 'h',              # C
+    'cpp', 'hpp', 'cc',    # C++
+    'rs', 'rlib',          # Rust
+    'go',                  # Go
+
+    # Web Development
+    'js', 'jsx', 'ts', 'tsx',  # JavaScript/TypeScript
+    'html', 'htm',         # HTML
+    'css', 'scss', 'sass', # CSS and preprocessors
+    'php',                 # PHP
+    'vue',                 # Web Frameworks
+
+    # General Purpose
+    'py',                  # Python
+    'java',                # Java
+    'cs',                  # C#
+    'rb',                  # Ruby
+    'kt', 'kts',           # Kotlin
+    'swift',               # Swift
+    'scala',               # Scala
+
+    # Shell/Scripts
+    'sh', 'bash',          # Shell scripts
+    'ps1',                 # PowerShell
+    'bat', 'cmd',          # Windows Batch
+
+    # Data/Config
+    'sql',                 # SQL
+    'r', 'R',              # R
+    'json', 'yaml', 'yml', # Data formats
+    'xml',                 # XML
+    'toml',                # TOML
+
+    # Others
+    'pl', 'pm',           # Perl
+    'dart',               # Dart
+    'hs',                 # Haskell
+    'lua',                # Lua
+    'ml', 'mli'           # OCaml
+}
+
 
 
 class CodeScanner:
@@ -13,7 +58,7 @@ class CodeScanner:
                  gitignore_files: Optional[List[str]] = None,
                  ignore_gitignore: bool = False):
         """Initialize the CodeScanner with optional file extensions to filter."""
-        self.extensions = extensions or {'py', 'java', 'js', 'cpp', 'c', 'h', 'hpp'}
+        self.extensions = extensions or DEFAULT_CODE_EXTENSIONS
         self.exclude_patterns = exclude_patterns or set()
         self.exclude_extensions = exclude_extensions or set()
         self.no_structure = False
@@ -155,16 +200,34 @@ class CodeScanner:
 
         return "\n".join(merged_content)
 
+    def scan_file(self, file_path: Path) -> str:
+        """Scan a single file and return its markdown-formatted content."""
+        if not file_path.is_file():
+            raise ValueError(f"Path {file_path} is not a file")
 
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+
+            merged_content = [
+                f"# {file_path.name}",
+                "```" + file_path.suffix.lstrip('.'),
+                content,
+                "```",
+                ""
+            ]
+            return "\n".join(merged_content)
+        except Exception as e:
+            raise ValueError(f"Error processing {file_path}: {str(e)}")
 
 
 def parse_arguments():
     parser = argparse.ArgumentParser(
-        description='Scan directory for code files and create a markdown-formatted output'
+        description='Scan file or directory and create a markdown-formatted output'
     )
     parser.add_argument(
-        'directory',
-        help='Directory to scan'
+        'path',
+        help='File or directory to scan'
     )
     parser.add_argument(
         '-e', '--extensions',
@@ -183,13 +246,18 @@ def parse_arguments():
     )
     parser.add_argument(
         '-o', '--output',
-        help='Output file path (defaults to print out unless specified)',
+        help='Output file path (if not specified, no output is printed)',
         default=None,
     )
     parser.add_argument(
         '--no-recursive',
         action='store_true',
         help='Disable recursive directory scanning'
+    )
+    parser.add_argument(
+        '--print',
+        action='store_true',
+        help='Print the markdown output'
     )
     return parser.parse_args()
 
@@ -198,7 +266,6 @@ if __name__ == "__main__":
     args = parse_arguments()
 
     extensions = {ext.strip() for ext in args.extensions.split(',') if ext.strip()}
-
     exclude_patterns = {pat.strip() for pat in args.exclude_patterns.split(',') if pat.strip()}
     exclude_extensions = {ext.strip() for ext in args.exclude_extensions.split(',') if ext.strip()}
 
@@ -209,26 +276,35 @@ if __name__ == "__main__":
             exclude_extensions=exclude_extensions
         )
 
-        print(f"Scanning directory: {args.directory}")
+        path = Path(args.path)
+        if not path.exists():
+            raise ValueError(f"Path does not exist: {path}")
+
+        print(f"Scanning {'file' if path.is_file() else 'directory'}: {args.path}")
         print(f"Including extensions: {', '.join(sorted(extensions))}")
         if exclude_patterns:
             print(f"Excluding patterns: {', '.join(sorted(exclude_patterns))}")
         if exclude_extensions:
             print(f"Excluding extensions: {', '.join(sorted(exclude_extensions))}")
 
-        merged_content = scanner.scan_directory(
-            args.directory,
-            recursive=not args.no_recursive
-        )
+        if path.is_file():
+            merged_content = scanner.scan_file(path)
+        else:
+            merged_content = scanner.scan_directory(
+                args.path,
+                recursive=not args.no_recursive
+            )
 
         if args.output is not None:
             with open(args.output, 'w', encoding='utf-8') as f:
                 f.write(merged_content)
             print(f"\nSuccess! Output written to: {args.output}")
             print(f"Total characters: {len(merged_content)}")
-        else:
+        elif args.print:
             print(merged_content)
-
+        else:
+            print(f"Total characters: {len(merged_content)}")
+            print("Use --print to display the output or -o to save to a file")
 
     except Exception as e:
         print(f"Error: {str(e)}", file=sys.stderr)
