@@ -7,12 +7,12 @@
 / /___ | (_) || (_| ||  __/ / /\/\ \ / /_// 
 \____/  \___/  \__,_| \___| \/    \//___,' 
 
-Ver. 0.0.2
-````
+Ver. 0.0.2b
+```
 
 # CodeMD
 
-🚀 Transform code repositories into markdown-formatted strings ready for LLM prompting
+🚀 Transform code files and repositories into markdown-formatted strings ready for LLM prompting
 
 [![Tests](https://github.com/dotpyu/codemd/actions/workflows/tests.yml/badge.svg)](https://github.com/dotpyu/codemd/actions/workflows/tests.yml)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
@@ -21,28 +21,32 @@ Ver. 0.0.2
 
 ## 📝 Overview
 
-CodeMD helps you convert your entire codebase into a format that's optimal for code-related prompts with Large Language Models (LLMs) like GPT-4, Claude, and others. It automatically processes your code files and outputs them in a clean, markdown-formatted structure that's perfect for LLM interactions.
+CodeMD helps you convert your code files or entire codebase into a format that's optimal for code-related prompts with Large Language Models (LLMs) like GPT-4, Claude, and others. It automatically processes your code files and outputs them in a clean, markdown-formatted structure that's perfect for LLM interactions.
 
 ## ✨ Features
 
-- 🔍 **Smart Directory Scanning**: Recursively scans directories for code files
-- 🎯 **Flexible Configuration**: 
+- 🔍 **Flexible Processing**: 
+  - Single file processing
+  - Recursive directory scanning
+- 🎯 **Configurable Options**: 
   - Configurable file extensions
   - File and pattern exclusion support
   - Custom .gitignore support
-- 📊 **Intelligent Output**:
+- 📊 **Smart Output**:
   - Markdown-formatted code blocks
-  - Preserved directory structure
-  - Repository structure visualization
+  - Optional directory structure visualization
   - Token count estimation (with tiktoken)
+  - Configurable output display
 - 📋 **Convenience**:
   - Simple command-line interface
   - Direct copy-to-clipboard support
   - Multiple output options
 
-### 🎉 Recent Updates
+### 🎉 Recent Updates (0.0.2b)
 
-- ⭐ **NEW**: Repository structure visualization (disable with `--no-structure`)
+- ⭐ **NEW**: Single file processing support
+- ⭐ **NEW**: Configurable output display (use `--print` to show output)
+- ⭐ **NEW**: Repository structure visualization (auto-disabled for single files, or use `--no-structure`)
 - ⭐ **NEW**: Automatic .gitignore support
   - Uses project's .gitignore by default
   - Custom .gitignore files via `--gitignore`
@@ -65,13 +69,27 @@ pip install -e .
 
 ### Command Line Interface
 
-**Basic Usage:**
+**Single File Processing:**
 ```bash
-codemd /path/to/your/code
+# Process a single file (no output by default)
+codemd /path/to/script.py
+
+# Process and display output
+codemd /path/to/script.py --print
+
+# Save to file
+codemd /path/to/script.py -o output.md
 ```
 
-**Custom Extensions and Output:**
+**Directory Processing:**
 ```bash
+# Basic directory scanning (no output by default)
+codemd /path/to/your/code
+
+# Show output in terminal
+codemd /path/to/your/code --print
+
+# Custom extensions and output file
 codemd /path/to/your/code -e py,java,sql -o output.md
 ```
 
@@ -106,6 +124,7 @@ Contributions are welcome! Feel free to open issues or submit pull requests.
 Distributed under the Apache 2.0 License. See `LICENSE` for more information.
 
 ---
+
 <div align="center">
 Made with ❤️ by Peilin
 </div>

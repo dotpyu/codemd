@@ -1,7 +1,9 @@
-import pytest
-from pathlib import Path
-from codemd import CodeScanner
 import tempfile
+from pathlib import Path
+
+import pytest
+
+from codemd import CodeScanner
 
 
 class TestCodeScanner:

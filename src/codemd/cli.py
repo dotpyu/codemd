@@ -1,18 +1,18 @@
 import argparse
+import platform
+import subprocess
 import sys
 from pathlib import Path
 from typing import Set, Tuple
-import subprocess
-import platform
 
 from .scanner import CodeScanner
 
 try:
     import tiktoken
+
     TIKTOKEN_AVAILABLE = True
 except ImportError:
     TIKTOKEN_AVAILABLE = False
-
 
 BANNER = r"""
    ___             _                    ___ 
@@ -24,13 +24,18 @@ BANNER = r"""
 
 EPILOG = """
 Examples:
-  # Basic usage (prints to stdout)
+  # Basic usage (file or directory, no output by default)
   codemd /path/to/code
+  codemd /path/to/file.py
 
-  # Custom extensions (prints to stdout)
+  # Print output to stdout
+  codemd /path/to/code --print
+  codemd /path/to/file.py --print
+
+  # Custom extensions
   codemd /path/to/code -e py,java,sql
 
-  # Save to file instead of printing
+  # Save to file
   codemd /path/to/code -o output.md
 
   # Exclude patterns and specific files
@@ -39,7 +44,7 @@ Examples:
   # Non-recursive scan with custom output
   codemd /path/to/code --no-recursive -o custom.md
 
-  # Disable structure output
+  # Disable structure output (auto-disabled for single files)
   codemd /path/to/code --no-structure
 
   # Use specific gitignore files
@@ -47,6 +52,9 @@ Examples:
 
   # Disable gitignore processing
   codemd /path/to/code --ignore-gitignore
+
+  # Process single file and print output
+  codemd /path/to/script.py --print -o script.md
 """
 
 
@@ -54,13 +62,13 @@ def parse_arguments() -> argparse.Namespace:
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(
         prog='codemd',
-        description='Transform code repositories into markdown-formatted strings ready for LLM prompting',
+        description='Transform code repositories or files into markdown-formatted strings ready for LLM prompting',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=EPILOG
     )
 
-    parser.add_argument('directory', type=str, help='Directory to scan')
-    parser.add_argument('-e', '--extensions', type=str, default='py,java,js,cpp,c,h,hpp',
+    parser.add_argument('path', type=str, help='File or directory to scan')
+    parser.add_argument('-e', '--extensions', type=str, default=None,
                         help='Comma-separated list of file extensions to include (without dots)')
     parser.add_argument('--exclude-patterns', type=str, default='',
                         help='Comma-separated list of patterns to exclude (e.g., test_,debug_)')
@@ -74,6 +82,8 @@ def parse_arguments() -> argparse.Namespace:
                         help='Enable verbose output')
     parser.add_argument('--no-structure', action='store_true',
                         help='Disable repository structure output')
+    parser.add_argument('--print', action='store_true',
+                        help='Print the markdown output (disabled by default)')
 
     parser.add_argument(
         '--gitignore',
@@ -90,8 +100,10 @@ def parse_arguments() -> argparse.Namespace:
 
     return parser.parse_args()
 
+
 def str_to_set(s: str) -> Set[str]:
     """Convert comma-separated string to set of strings."""
+    if s is None: return None
     return {item.strip() for item in s.split(',') if item.strip()}
 
 
@@ -203,19 +215,16 @@ def format_token_info(token_count: int, model_name: str) -> str:
 
 def main() -> int:
     print(BANNER)
-    print("Version 0.0.2")
-    print("Transform your code into LLM-ready prompts\n")
+    print("Version 0.0.2b")
+    print("Transform your code into LLM-ready prompts and automatically copy them to your clipboard!\n")
 
     try:
         args = parse_arguments()
-        directory = Path(args.directory)
+        path = Path(args.path)
         output_file = Path(args.output) if args.output else None
 
-        if not directory.exists():
-            print(f"Error: Directory '{directory}' does not exist", file=sys.stderr)
-            return 1
-        if not directory.is_dir():
-            print(f"Error: '{directory}' is not a directory", file=sys.stderr)
+        if not path.exists():
+            print(f"Error: Path '{path}' does not exist", file=sys.stderr)
             return 1
 
         extensions = str_to_set(args.extensions)
@@ -230,16 +239,18 @@ def main() -> int:
             ignore_gitignore=args.ignore_gitignore
         )
 
-        scanner.no_structure = args.no_structure
-
+        scanner.no_structure = args.no_structure or path.is_file()
 
         try:
-            content = scanner.scan_directory(
-                directory,
-                recursive=not args.no_recursive
-            )
+            if path.is_file():
+                content = scanner.scan_file(path)
+            else:
+                content = scanner.scan_directory(
+                    path,
+                    recursive=not args.no_recursive
+                )
         except Exception as e:
-            print(f"Error scanning directory: {str(e)}", file=sys.stderr)
+            print(f"Error scanning path: {str(e)}", file=sys.stderr)
             return 1
 
         files = content.count('```') // 2
@@ -262,7 +273,8 @@ def main() -> int:
             if args.verbose:
                 print(f"\nProcessed {files} files ({chars:,} characters)")
                 print(token_info + "\n")
-            print(content)
+            if args.print:  # Only print content if --print flag is set
+                print(content)
             print(token_info)
             prompt_for_copy(content)
 
