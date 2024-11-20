@@ -12,7 +12,7 @@ Ver. 0.0.2b
 
 # CodeMD
 
-🚀 Transform code files and repositories into markdown-formatted strings ready for LLM prompting
+🚀 Transform code files and repositories into markdown-formatted strings ready for LLM prompting and automatically copy to your clipboard. Perfect for seamless code-to-prompt workflow with ChatGPT, Claude, and other LLMs.
 
 [![Tests](https://github.com/dotpyu/codemd/actions/workflows/tests.yml/badge.svg)](https://github.com/dotpyu/codemd/actions/workflows/tests.yml)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
