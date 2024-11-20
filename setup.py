@@ -10,7 +10,7 @@ with open("requirements.txt", encoding="utf-8") as f:
 
 setup(
     name="codemd",
-    version="0.0.2b1",
+    version="0.0.3b",
     author="Peilin Yu",
     author_email="peilin_yu@brown.edu",
     description="Transform code repositories into markdown-formatted strings ready for LLM prompting",
